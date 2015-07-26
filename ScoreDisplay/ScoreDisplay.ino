@@ -5,6 +5,8 @@ const int clockPin = 4;
 const int scoreUpPin = 10;
 const int scoreDownPin = 9;
 const int scoreResetPin = 8;
+const int sensorOnPin = 13;
+const int sensorInPin = 12;
 
 // Button states variables
 int buttonUpState = LOW;
@@ -16,6 +18,8 @@ int lastButtonResetState = LOW;
 int buttonUpRead = LOW;
 int buttonDownRead = LOW;
 int buttonResetRead = LOW;
+int sensorRead = HIGH;
+
 // Button read variables
 
 // Debounce variables
@@ -33,9 +37,13 @@ void setup() {
   pinMode(dataPin, OUTPUT);
   pinMode(latchPin, OUTPUT);
   pinMode(clockPin, OUTPUT);
+  pinMode(sensorOnPin, OUTPUT);
   pinMode(scoreUpPin, INPUT);
   pinMode(scoreDownPin, INPUT);
   pinMode(scoreResetPin, INPUT);
+  pinMode(sensorInPin,INPUT);
+  digitalWrite(sensorOnPin, HIGH);
+  delay(100);
   updateDisplay(0);
 }
 
@@ -45,6 +53,7 @@ void loop(){
   buttonUpRead = digitalRead(scoreUpPin);
   buttonDownRead = digitalRead(scoreDownPin);
   buttonResetRead = digitalRead(scoreResetPin);
+  sensorRead = digitalRead(sensorInPin);
   
   // Check if debounce timer variables need to be updated
   debounceUpdate();
@@ -52,6 +61,7 @@ void loop(){
   checkUpButton();
   checkDownButton();
   checkResetButton();
+  checkSensorIn();
   
   lastButtonUpState = buttonUpRead;
   lastButtonDownState = buttonDownRead;
@@ -65,7 +75,7 @@ void updateCount(char* action, char* reset){
   else{   
     if (action == "+"){
       score++;
-      if (score > 9){
+      if (score > 99){
         score = 0;
       }
     }else{
@@ -80,8 +90,15 @@ void updateCount(char* action, char* reset){
 }
 
 void updateDisplay(int value){
+  // convert decimal number to tens and units.
+  int tens = 0;
+  int units = 0;
+  tens = value/10;
+  units = value % 10;
+  
   digitalWrite(latchPin, LOW);
-  shiftOut(dataPin, clockPin, LSBFIRST, numberDisplay[value]);
+  shiftOut(dataPin, clockPin, LSBFIRST, numberDisplay[units]);
+  shiftOut(dataPin, clockPin, LSBFIRST, numberDisplay[tens]);
   digitalWrite(latchPin, HIGH);
 }
 
@@ -149,6 +166,14 @@ void checkResetButton(){
     }
   }
 }
+
+void checkSensorIn(){
+ if (!sensorRead){
+   updateCount("+","n");
+ }
+ Serial.println(sensorRead);
+}
+
 /* 
   for (int currentValue = 0; currentValue <= 9; currentValue ++){
   
