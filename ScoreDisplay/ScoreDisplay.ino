@@ -15,6 +15,8 @@ int buttonDownState = LOW;
 int lastButtonDownState = LOW;
 int buttonResetState = LOW;
 int lastButtonResetState = LOW;
+int SensorState = LOW;
+int lastSensorState = LOW;
 int buttonUpRead = LOW;
 int buttonDownRead = LOW;
 int buttonResetRead = LOW;
@@ -26,6 +28,7 @@ int sensorRead = HIGH;
 long lastUpDebounceTime = 0;  // the last time the output pin was toggled
 long lastDownDebounceTime = 0;  // the last time the output pin was toggled
 long lastResetDebounceTime = 0;  // the last time the output pin was toggled
+long lastSensorDebounceTime = 0; // the last time the sensor was toggled
 long debounceDelay = 50;    // the debounce time; increase if the output flickers
 
 // Display variables
@@ -54,25 +57,25 @@ void loop(){
   buttonDownRead = digitalRead(scoreDownPin);
   buttonResetRead = digitalRead(scoreResetPin);
   sensorRead = digitalRead(sensorInPin);
-  
+
   // Check if debounce timer variables need to be updated
   debounceUpdate();
- 
+
   checkUpButton();
   checkDownButton();
   checkResetButton();
   checkSensorIn();
-  
+
   lastButtonUpState = buttonUpRead;
   lastButtonDownState = buttonDownRead;
   lastButtonResetState = buttonResetRead;
-}  
-  
-void updateCount(char* action, char* reset){   
+}
+
+void updateCount(char* action, char* reset){
   if (reset == "y"){
     score = 0;
   }
-  else{   
+  else{
     if (action == "+"){
       score++;
       if (score > 99){
@@ -95,7 +98,7 @@ void updateDisplay(int value){
   int units = 0;
   tens = value/10;
   units = value % 10;
-  
+
   digitalWrite(latchPin, LOW);
   shiftOut(dataPin, clockPin, LSBFIRST, numberDisplay[units]);
   shiftOut(dataPin, clockPin, LSBFIRST, numberDisplay[tens]);
@@ -107,15 +110,19 @@ void debounceUpdate(){
     // set new debounce time.
     lastUpDebounceTime = millis();
   }
-  
+
   if (buttonDownRead != lastButtonDownState) {
     // set new debounce time.
     lastDownDebounceTime = millis();
   }
-  
+
   if (buttonResetRead != lastButtonResetState) {
     // set new debounce time.
     lastResetDebounceTime = millis();
+  }
+  if (sensorRead != lastSensorReadState) {
+    // set newdebounce time.
+    lastSensorDebounceTime = millis();
   }
 }
 
@@ -174,19 +181,18 @@ void checkSensorIn(){
  Serial.println(sensorRead);
 }
 
-/* 
+/*
   for (int currentValue = 0; currentValue <= 9; currentValue ++){
-  
+
   // Disable the latch whil we clock in data
   digitalWrite(latchPin, LOW);
-  
+
   // Send the value as a binary sequence to the module
   shiftOut(dataPin, clockPin, LSBFIRST, numberDisplay[currentValue]);
-  
+
   // Enable the latch again to set the output states
   digitalWrite(latchPin, HIGH);
-  
+
   delay(1000);
   }
- */ 
-
+ */
