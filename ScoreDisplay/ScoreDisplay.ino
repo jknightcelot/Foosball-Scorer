@@ -15,7 +15,7 @@ int buttonDownState = LOW;
 int lastButtonDownState = LOW;
 int buttonResetState = LOW;
 int lastButtonResetState = LOW;
-int SensorState = LOW;
+int sensorState = LOW;
 int lastSensorState = LOW;
 int buttonUpRead = LOW;
 int buttonDownRead = LOW;
@@ -30,6 +30,7 @@ long lastDownDebounceTime = 0;  // the last time the output pin was toggled
 long lastResetDebounceTime = 0;  // the last time the output pin was toggled
 long lastSensorDebounceTime = 0; // the last time the sensor was toggled
 long debounceDelay = 50;    // the debounce time; increase if the output flickers
+long sensorDebounceDelay = 100;
 
 // Display variables
 int score = 0;
@@ -120,7 +121,7 @@ void debounceUpdate(){
     // set new debounce time.
     lastResetDebounceTime = millis();
   }
-  if (sensorRead != lastSensorReadState) {
+  if (sensorRead != lastSensorState) {
     // set newdebounce time.
     lastSensorDebounceTime = millis();
   }
@@ -175,24 +176,25 @@ void checkResetButton(){
 }
 
 void checkSensorIn(){
- if (!sensorRead){
-   updateCount("+","n");
- }
+  //if (!sensorRead){
+  //   updateCount("+","n");
+  // }
+  if ((millis() - lastResetDebounceTime) > sensorDebounceDelay) {
+    if (sensorRead != sensorState) {
+      sensorState = sensorRead;
+      if (sensorState == LOW){
+        updateCount("+","n");
+      }
+    }
+    else {
+      powerCycleSensor(sensorInPin);
+    }
+  }
  Serial.println(sensorRead);
 }
 
-/*
-  for (int currentValue = 0; currentValue <= 9; currentValue ++){
-
-  // Disable the latch whil we clock in data
-  digitalWrite(latchPin, LOW);
-
-  // Send the value as a binary sequence to the module
-  shiftOut(dataPin, clockPin, LSBFIRST, numberDisplay[currentValue]);
-
-  // Enable the latch again to set the output states
-  digitalWrite(latchPin, HIGH);
-
-  delay(1000);
-  }
- */
+void powerCycleSensor(int sensorPin){
+  digitalWrite(sensorPin, LOW);
+  delay(10);
+  digitalWrite(sensorPin, HIGH);
+}
